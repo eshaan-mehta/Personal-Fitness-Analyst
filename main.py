@@ -15,12 +15,11 @@ while(True):
 
     _, frame = capture.read() #extracts single fram from video
 
-    cv.imshow("FPS: " + str(int(1/delta_time)), cv.flip(frame, 1))
-
+    cv.imshow("FPS: " + str(int(1/delta_time)), cv.flip(frame, 1)) #display framerate and flip camera horzontally
 
     #program waits 1ms each between frames checks for keypress  
     # 27 is ASCII of escape key
-    if (cv.waitKey(1) & 0xFF) == 27:
+    if cv.waitKey(1) & 0xFF == 27:
         break
 
     
