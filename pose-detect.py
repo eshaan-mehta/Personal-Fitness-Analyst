@@ -41,7 +41,7 @@ while cap.isOpened():
                         "keypoint": name,
                         "x": x.item(),
                         "y": y.item(),
-                        "probability": +.item(),
+                        "probability": probability.item(),
                     }
                 )
 
