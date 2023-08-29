@@ -1,16 +1,28 @@
 import cv2 as cv
+import time
 from ultralytics import YOLO
 
 capture = cv.VideoCapture(0)
 
+
+prev_time = time.time()  #initial time calculation
+
 while(True):
+    #delta_time calculation to determine time per frame
+    cur_time = time.time()
+    delta_time = cur_time - prev_time
+    prev_time = cur_time
 
-    _, frame = capture.read()
+    _, frame = capture.read() #extracts single fram from video
 
-    cv.imshow("video capture", cv.flip(frame, 1))
+    cv.imshow("FPS: " + str(int(1/delta_time)), cv.flip(frame, 1))
 
-    if cv.waitKey(1) & 0xFF == ord('q'):
+
+    #program waits 1ms each between frames checks for keypress  
+    # 27 is ASCII of escape key
+    if (cv.waitKey(1) & 0xFF) == 27:
         break
 
+    
 capture.release()
 cv.destroyAllWindows()
