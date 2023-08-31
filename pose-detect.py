@@ -1,6 +1,4 @@
-from setup import *
-
-pose_model = YOLO("yolov8s-pose.pt")
+from setup import * 
 
 keypoint_names = [
     "nose",
@@ -36,14 +34,14 @@ while cap.isOpened():
             keypoints = person.keypoints.data[0]
             for keypoint, name in zip(keypoints, keypoint_names):
                 x, y, probability = keypoint #keypoint is 3d array
-                print(
-                    {
-                        "keypoint": name,
-                        "x": x.item(),
-                        "y": y.item(),
-                        "probability": probability.item(),
-                    }
-                )
+                # print(
+                #     {
+                #         "keypoint": name,
+                #         "x": x.item(),
+                #         "y": y.item(),
+                #         "probability": probability.item(),
+                #     }
+                # )
 
             pose_annotated_frame = person.plot()
             cv.imshow("Pose Detection", pose_annotated_frame)
