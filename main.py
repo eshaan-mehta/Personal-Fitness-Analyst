@@ -9,6 +9,8 @@ knee_to_angkle_x = 0
 back_straightness = 1 #percentage
 depth = 0 #percentage
 
+required_keypoints = ["left_shoulder", "right_shoulder", "left_hip", "right_hip", "left_knee", "right_knee", "left_ankle", "right_ankle",]
+
 
 def overlay(frame):
     #adding FPS overlay onto video
@@ -39,11 +41,19 @@ while(capture.isOpened()):
         results = model(source=frame, verbose=False, conf=MIN_CONFIDENCE)
 
         for person in results:
-            keypoints = person.keypoints
+
+            keypoint_list = []
+
+            keypoints = person.keypoints.data[0]
+
             print(keypoints)
+            keypoint_list.append(keypoints)
 
             annotated_frame = person.plot()
 
+        for keypoint in required_keypoints:
+            if(keypoint not in keypoint_list):
+                print("Please move into camera view")
 
 
 
