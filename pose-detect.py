@@ -27,7 +27,7 @@ while cap.isOpened():
 
     if success:
         # Pose detection
-        pose_results = pose_model(frame, verbose=True, conf=0.5)
+        pose_results = model(frame, verbose=True, conf=0.5)
 
         # Print each body coordinate as a dictionary
         for person in pose_results:

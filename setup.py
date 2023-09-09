@@ -7,4 +7,4 @@ capture = cv.VideoCapture(0)
 WINDOW_NAME = "Video Capture"
 
 
-pose_model = YOLO("yolov8s-pose.pt") #pretrained model
+model = YOLO("yolov8n-pose.pt") #pretrained model
