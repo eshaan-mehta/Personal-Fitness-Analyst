@@ -4,3 +4,5 @@ things to add
 - back straight
 - depth
 - knee to toe
+
+- tracking statistics, user start end
