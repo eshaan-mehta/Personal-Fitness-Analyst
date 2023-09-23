@@ -3,8 +3,11 @@ from ultralytics import YOLO
 import numpy as np
 import torch
 
-capture = cv.VideoCapture(0)
 WINDOW_NAME = "Physiotherapy Recovery Analyst"
+
+capture = cv.VideoCapture(0)
+
+
 
 
 if torch.backends.cudnn.is_available():
