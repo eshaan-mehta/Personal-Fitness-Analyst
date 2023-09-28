@@ -1,86 +1,33 @@
 from setup import *
 
 MIN_CONFIDENCE = 0.5
-overlay_height = 100
+OVERLAY_HEIGHT = 100
 UP_THRESHOLD = 150
 DOWN_THRESHOLD = 100
+
+status_list = {0:"OFF", 1:"RESET", 2:"ACTIVE"}
+status = 0
 
 front_knee = []
 back_knee = []
 back_side = []
-
-front_knee_angle = 0
-back_knee_angle = 0
-hip_angle = 0
 front_leg = ""
 
+def reset() -> None:
+    global front_knee_angle, back_knee_angle, hip_angle
+    global back_straightness, knee_to_ankle_x, depth, balance, num_reps, is_up
 
+    front_knee_angle = 0
+    back_knee_angle = 0
+    hip_angle = 0
 
-knee_to_ankle_x = 0
-back_straightness = 1 #percentage
-depth = 0 #percentage
-balance = 0 #percentage
+    back_straightness = 0 #percentage
+    depth = 0 #percentage
+    balance = 0 #percentage
+    knee_to_ankle_x = 0
 
-num_reps = 0
-is_up = True
-
-def overlay(frame: cv.Mat) -> cv.Mat:
-    #frame shape = (height, width, depth)
-    
-
-    #background rectangle
-    frame = cv.rectangle(img=frame,
-                         pt1=(0, frame.shape[0] - overlay_height),
-                         pt2=(frame.shape[1], frame.shape[0]),
-                         color=(0,0,0),
-                         thickness=cv.FILLED
-                         )
-    #left knee angle text
-    frame = cv.putText(img=frame,
-                       text=f"Front Angle: {round(front_knee_angle, 2)}",
-                       org=(5, frame.shape[0] - overlay_height + 15),
-                       fontFace=cv.FONT_HERSHEY_COMPLEX_SMALL,
-                       fontScale=0.8,
-                       color=(255,255,255),
-                       thickness=2)
-    
-    #right knee angle text
-    frame = cv.putText(img=frame,
-                       text=f"Back Angle: {round(back_knee_angle, 2)}",
-                       org=(5, frame.shape[0] - overlay_height + 45),
-                       fontFace=cv.FONT_HERSHEY_COMPLEX_SMALL,
-                       fontScale=0.8,
-                       color=(255,255,255),
-                       thickness=2)
-    
-    #rep counter
-    frame = cv.putText(img=frame,
-                       text=f"Reps: {hip_angle}",
-                       org=(frame.shape[1] - 300, frame.shape[0] - overlay_height + 15),
-                       fontFace=cv.FONT_HERSHEY_COMPLEX_SMALL,
-                       fontScale=0.8,
-                       color=(255,255,255),
-                       thickness=2)
-    
-    #front leg
-    is_up_text = "up" if is_up else "down"
-    frame = cv.putText(img=frame,
-                       text= "up" if is_up else "down",
-                       org=(frame.shape[1] - 300, frame.shape[0] - overlay_height + 45),
-                       fontFace=cv.FONT_HERSHEY_COMPLEX_SMALL,
-                       fontScale=0.8,
-                       color=(255,255,255),
-                       thickness=2)
-    #back straightness
-    frame = cv.putText(img=frame,
-                       text=f"Back Straighness: {back_straightness}%",
-                       org=(frame.shape[1] - 300, frame.shape[0] - overlay_height + 75),
-                       fontFace=cv.FONT_HERSHEY_COMPLEX_SMALL,
-                       fontScale=0.8,
-                       color=(255,255,255),
-                       thickness=2)
-
-    return frame
+    num_reps = 0
+    is_up = True
 
 
 def find_angle(start: list, middle: list, end: list) -> float:
@@ -91,15 +38,137 @@ def find_angle(start: list, middle: list, end: list) -> float:
     #ensures angle between 0-180 degrees
     return (360 - angle) if angle > 180 else angle
 
-def to_percent(goal: float, range: float, angle: float) -> float:
-    #converts angle to percentage for desired angle range
+def deviation(target: float, range: float, angle: float) -> float:
+    #converts angle to percentage based of deviation from specified target
     # maps angle to [0,1] * 100
 
-    percent = 1 - abs(goal - angle)/range
+    percent = 1 - abs(target - angle)/range
 
-    return 0 if (goal - angle > range) else round(percent*100, 2)
+    return 0 if (target - angle > range) else round(percent*100, 2)
+
+def overlay(frame: cv.Mat) -> cv.Mat:
+    #frame shape = (height, width, depth)
+    #color is in BGR
+    
+    status_color = {0:(0,0,0), 1:(0,0,160), 2:(0,190,0)}
+
+    #status background
+    frame = cv.rectangle(img=frame,
+                         pt1=(frame.shape[1]//4*3, 0),
+                         pt2=(frame.shape[1], frame.shape[0]//10),
+                         color=status_color[status],
+                         thickness=cv.FILLED
+                         )
+    
+    frame = cv.putText(img=frame,
+                       text=status_list[status],
+                       org=(frame.shape[1]//4*3 + 25, 50),
+                       fontFace=cv.FONT_HERSHEY_COMPLEX_SMALL,
+                       fontScale=2.5,
+                       color=(255,255,255),
+                       thickness=2)
+
+#-----------------------------------------------------------------------------
+    
+    #rep background
+    frame = cv.rectangle(img=frame,
+                         pt1=(0,0),
+                         pt2=(frame.shape[1]//3, frame.shape[0]//10),
+                         color=(160,0,0),
+                         thickness=cv.FILLED
+                         )
+    
+    #rep counter
+    frame = cv.putText(img=frame,
+                       text=f"Reps: {num_reps}",
+                       org=(25, 50),
+                       fontFace=cv.FONT_HERSHEY_COMPLEX_SMALL,
+                       fontScale=2.5,
+                       color=(255,255,255),
+                       thickness=2)
+    
+    #up/down status
+    frame = cv.putText(img=frame,
+                       text= "up" if is_up else "down",
+                       org=(300, 50),
+                       fontFace=cv.FONT_HERSHEY_COMPLEX_SMALL,
+                       fontScale= 1.7,
+                       color=(255,255,255),
+                       thickness=1)
+
+#-----------------------------------------------------------------------------
+
+    #bottom background rectangle
+    frame = cv.rectangle(img=frame,
+                         pt1=(0, frame.shape[0] - OVERLAY_HEIGHT),
+                         pt2=(frame.shape[1], frame.shape[0]),
+                         color=(0,0,0),
+                         thickness=cv.FILLED
+                         )
+    
+    #front knee angle text
+    frame = cv.putText(img=frame,
+                       text=f"Front Knee Angle: {round(front_knee_angle, 2)}",
+                       org=(25, frame.shape[0] - OVERLAY_HEIGHT + 25),
+                       fontFace=cv.FONT_HERSHEY_COMPLEX_SMALL,
+                       fontScale=1.2,
+                       color=(255,255,255),
+                       thickness=2)
+    
+    #back knee angle text
+    frame = cv.putText(img=frame,
+                       text=f"Back Knee Angle: {round(back_knee_angle, 2)}",
+                       org=(25, frame.shape[0] - OVERLAY_HEIGHT + 65),
+                       fontFace=cv.FONT_HERSHEY_COMPLEX_SMALL,
+                       fontScale=1.2,
+                       color=(255,255,255),
+                       thickness=2)
+    
+    #back straightness
+    frame = cv.putText(img=frame,
+                       text=f"Back Straighness: {back_straightness}%",
+                       org=(frame.shape[1]//3*2, frame.shape[0] - OVERLAY_HEIGHT + 25),
+                       fontFace=cv.FONT_HERSHEY_COMPLEX_SMALL,
+                       fontScale=1.2,
+                       color=(255,255,255),
+                       thickness=2)
+    
+    #front leg
+    frame = cv.putText(img=frame,
+                       text=f"Front leg: {front_leg}",
+                       org=(frame.shape[1]//3*2, frame.shape[0] - OVERLAY_HEIGHT + 65),
+                       fontFace=cv.FONT_HERSHEY_COMPLEX_SMALL,
+                       fontScale=1.2,
+                       color=(255,255,255),
+                       thickness=2)
+    
+    """
+    if status == 1:
+        frame = cv.circle(img=frame, 
+                          center=(int(keypoints[5][0]), int(keypoints[5][1])),
+                          radius=15,
+                          color=status_color[status],
+                          thickness=cv.FILLED)
+        frame = cv.circle(img=frame, 
+                          center=(int(keypoints[6][0]), int(keypoints[6][1])),
+                          radius=15,
+                          color=status_color[status],
+                          thickness=cv.FILLED)
+        frame = cv.circle(img=frame, 
+                          center=(int(keypoints[7][0]), int(keypoints[7][1])),
+                          radius=15,
+                          color=status_color[status],
+                          thickness=cv.FILLED)
+        frame = cv.circle(img=frame, 
+                          center=(int(keypoints[8][0]), int(keypoints[8][1])),
+                          radius=15,
+                          color=status_color[status],
+                          thickness=cv.FILLED)
+    """
+    return frame
 
 
+reset()
 while capture.isOpened():
     success, frame = capture.read() #extracts single frame from video, success if receiving video
 
@@ -112,47 +181,62 @@ while capture.isOpened():
             keypoints = person.keypoints.xy[0].tolist() 
 
             try:  
-                if keypoints[1][0] < keypoints[3][0]: #facing camera left
+                #define relevent front, back keypoints list depending on direction of person and knee in front
+                if keypoints[1][0] < keypoints[3][0]: #user facing camera left
                     if keypoints[15][0] < keypoints[16][0]: #left leg forward
                         front_knee = [keypoints[11], keypoints[13], keypoints[15]] #left
                         back_knee = [keypoints[12], keypoints[14], keypoints[16]] #right
                         back_side = [keypoints[5], keypoints[11], keypoints[14]] #right
-                        front_leg = "Left Leg front"
+                        front_leg = "Left"
 
                     else: #right leg forward
                         front_knee = [keypoints[12], keypoints[14], keypoints[16]] #right
                         back_knee = [keypoints[11], keypoints[13], keypoints[15]] #left
                         back_side = [keypoints[6], keypoints[12], keypoints[13]] #left
-                        front_leg = "Right Leg front"
+                        front_leg = "Right"
 
-                if keypoints[1][0] >= keypoints[3][0]: #facing camera right
+                if keypoints[1][0] >= keypoints[3][0]: #user facing camera right
                     if keypoints[15][0] > keypoints[16][0]: #left leg forward
                         front_knee = [keypoints[11], keypoints[13], keypoints[15]] #left
                         back_knee = [keypoints[12], keypoints[14], keypoints[16]] #right
                         back_side = [keypoints[5], keypoints[11], keypoints[14]] #right
-                        front_leg = "Left Leg front"
+                        front_leg = "Left"
 
                     else: #right leg forward
                         front_knee = [keypoints[12], keypoints[14], keypoints[16]] #right
                         back_knee = [keypoints[11], keypoints[13], keypoints[15]] #left
                         back_side = [keypoints[6], keypoints[12], keypoints[13]] #left
-                        front_leg = "Right Leg front"
+                        front_leg = "Right"
 
-                #calculating angles at knees, hip
-                front_knee_angle = find_angle(front_knee[0], front_knee[1], front_knee[2])
-                back_knee_angle = find_angle(back_knee[0], back_knee[1], back_knee[2])
-                hip_angle = find_angle(back_side[0], back_side[1], back_side[2])
+                #tracking user status if in active status
+                if status == 2:
+                    #calculating angles at knees, hip
+                    front_knee_angle = find_angle(front_knee[0], front_knee[1], front_knee[2])
+                    back_knee_angle = find_angle(back_knee[0], back_knee[1], back_knee[2])
+                    hip_angle = find_angle(back_side[0], back_side[1], back_side[2])
 
-                if is_up:
-                    back_straightness = to_percent(165, 70, hip_angle)
-                else:
-                    back_straightness = to_percent(170, 80, hip_angle)
+                    #calculate back straighness using hip angle
+                    back_straightness = deviation(157, 80, hip_angle)
 
-                if front_knee_angle > UP_THRESHOLD and not is_up:
-                    num_reps += 1
-                    is_up = True
-                elif is_up and (front_knee_angle < DOWN_THRESHOLD):
-                    is_up = False
+                    #counting repts
+                    if front_knee_angle > UP_THRESHOLD and not is_up:
+                        num_reps += 1
+                        is_up = True
+                    elif is_up and (front_knee_angle < DOWN_THRESHOLD):
+                        is_up = False
+
+                #set status to reset if elbows above shoulders
+                #note: y is flipped
+                if keypoints[7][1] < keypoints[5][1] and keypoints[8][1] < keypoints[6][1]:
+                    status = 1
+
+                    #reset stats
+                    if front_knee_angle > 0:
+                        reset()
+                    
+                elif status != 0: #set to active status when not in off status
+                    status = 2
+                
             except:
                 pass
             
