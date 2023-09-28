@@ -1,8 +1,6 @@
 things to add
-- angle check at knee (dot product)
 - knee to ground
-- back straight
 - depth
-- knee to toe
+- knee to toe #omit?
 
 - tracking statistics, user start end
