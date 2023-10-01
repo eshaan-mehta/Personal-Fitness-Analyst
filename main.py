@@ -6,6 +6,7 @@ FRAME_INTERVAL = 5
 MIN_CONFIDENCE = 0.5
 UP_THRESHOLD = 150
 DOWN_THRESHOLD = 100
+BALANCE_THRESHOLD = 20
 
 STATUS_LIST = {0:"OFF", 1:"RESET", 2:"ACTIVE"}
 STATUS_COLOR = {0:(0,0,0), 1:(0,0,160), 2:(0,190,0)}
@@ -25,16 +26,17 @@ frame_count = 0
 
 def reset() -> None:
     global front_knee_angle, back_knee_angle, hip_angle
-    global back_straightness, knee_to_ankle_x, depth, balance, num_reps, is_up
+    global back_straightness, knee_to_ankle_x, depth, balance, cur_shoulders, prev_shoulders, num_reps, is_up
 
     front_knee_angle = 0
     back_knee_angle = 0
     hip_angle = 0
 
     back_straightness = 0 #percentage
-    depth = 0 #percentage
-    balance = 0 #percentage
-    knee_to_ankle_x = 0
+    balance = 0
+    cur_shoulders = 0 
+    prev_shoulders = 0
+
 
     num_reps = 0
     is_up = True
@@ -228,6 +230,8 @@ while capture.isOpened():
                         back_side = [keypoints[6], keypoints[12], keypoints[13]] #left
                         front_leg = "Right"
 
+                prev_shoulders = abs(keypoints[5][1] - keypoints[6][1])
+
                 #tracking user status if in active status
                 if status == 2:
                     #calculating angles at knees, hip
@@ -235,6 +239,10 @@ while capture.isOpened():
                     back_knee_angle = find_angle(back_knee[0], back_knee[1], back_knee[2])
                     hip_angle = find_angle(back_side[0], back_side[1], back_side[2])
 
+                    cur_shoulders = abs(keypoints[5][1] - keypoints[6][1])
+
+                    balance = deviation(prev_shoulders, BALANCE_THRESHOLD, cur_shoulders)
+                    
                     #calculate back straighness using hip angle
                     back_straightness = deviation(157, 80, hip_angle)
 
