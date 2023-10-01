@@ -1,6 +1,8 @@
 things to add
-- knee to ground
-- depth
-- knee to toe #omit?
 
-- tracking statistics, user start end
+-vertical lines
+-overlay cv image
+-delete file 
+
+-linekdin vid
+-polish code
