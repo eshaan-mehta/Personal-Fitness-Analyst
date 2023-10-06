@@ -71,9 +71,14 @@ def deviation(target: float, range: float, angle: float) -> float:
 
 def create_graph():
     plt.plot(frames, depth_points)
+
     plt.xticks(rep_points, (f"Rep {i+1}" for i in range(len(rep_points))))
     plt.ylabel("Height")
     plt.title("Lunge Depth and Rep Count")
+
+    for point in rep_points:
+        plt.axvline(x=point, color = 'r', label = "axvline - full height")
+
     plt.savefig("graphs/depth.png")
     plt.show()
 
