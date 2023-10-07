@@ -2,13 +2,14 @@ import cv2 as cv
 from ultralytics import YOLO
 from torch import backends, cuda
 
+from os import remove
 from numpy import arctan2, pi
 import matplotlib.pyplot as plt
 
-WINDOW_NAME = "Physiotherapy Recovery Analyst"
 
-capture = cv.VideoCapture(0)
+WINDOW_NAME = "Physiotherapy Exercise Analyst"
 
+#select device for model
 if backends.cudnn.is_available():
     device = "cudnn"
 if backends.mps.is_available():
@@ -19,6 +20,7 @@ else:
     device = "cpu"
 print(device)
 
+capture = cv.VideoCapture(0)
 model = YOLO("yolov8s-pose.pt").to(device) #load model to available device
 
 #keypoints numbers
