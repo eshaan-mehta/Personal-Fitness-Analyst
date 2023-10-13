@@ -1,5 +1,7 @@
 from setup import *
 
+import streamlit as st
+
 OVERLAY_HEIGHT = 100
 FRAME_INTERVAL = 5
 
@@ -23,9 +25,9 @@ back_knee = []
 back_side = []
 front_leg = ""
 
-
-
-
+st.title("Test")
+video_container = st.empty()
+st.write("caption")
 
 def reset() -> None:
     global front_knee_angle, back_knee_angle, hip_angle
@@ -98,6 +100,7 @@ def graph_overlay(frame: cv.Mat) -> cv.Mat:
     try:
         img = cv.imread(PATH)
     except:
+        print("graph not found")
         return
         
     img = cv.resize(img, (w, h))
@@ -179,11 +182,7 @@ def overlay(frame: cv.Mat) -> cv.Mat:
                         fontFace=cv.FONT_HERSHEY_COMPLEX_SMALL,
                         fontScale=1.2,
                         color=(255,255,255),
-                        thickness=2)
-        
-        
-
-        
+                        thickness=2)  
     else:
         #front knee angle text
         frame = cv.putText(img=frame,
@@ -342,10 +341,8 @@ while capture.isOpened():
                 if not is_graph_created:
                     create_graph()
                     is_graph_created = True
-                    
-
+                
             #-----------  STATUS UPDATE --------------------------------
-
             #set status to reset if left wrist above shoulder
             #note: y increases as you go down the screen
             if keypoints[9][1] < keypoints[5][1]:
@@ -359,8 +356,6 @@ while capture.isOpened():
             else: 
                 if status == 1: #set to active status after reset
                     status = 2
-
-
         except:
             pass
         
@@ -387,7 +382,9 @@ while capture.isOpened():
         annotated_frame = graph_overlay(annotated_frame)
     
     #cv.resizeWindow(WINDOW_NAME, 900, 700)
-    cv.imshow(WINDOW_NAME, annotated_frame) #display frame
+    #cv.imshow(WINDOW_NAME, annotated_frame) #display frame
+    video_container.image(annotated_frame, channels="BGR")
+
 
     #program waits 1ms each between frames checks for keypress of 'q'
     if (cv.waitKey(1) & 0xFF) == ord('q'):
